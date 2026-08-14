@@ -1,15 +1,21 @@
 const { google } = require('googleapis');
 const stream = require('stream');
 
-const auth = new google.auth.GoogleAuth({
-  scopes: ['https://www.googleapis.com/auth/drive.file'],
-});
-
-const drive = google.drive({ version: 'v3', auth });
-
 async function guardarChatEnDrive(nombreUsuario, nombrePersonaje, historialChat) {
   try {
     const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID;
+    
+    // Si no hay ID de Google Drive configurado, solo muestra una advertencia sin tumbar el servidor
+    if (!folderId) {
+      console.log('Aviso: GOOGLE_DRIVE_FOLDER_ID no configurado aún. Se omite respaldo.');
+      return;
+    }
+
+    const auth = new google.auth.GoogleAuth({
+      scopes: ['https://www.googleapis.com/auth/drive.file'],
+    });
+
+    const drive = google.drive({ version: 'v3', auth });
     const fileName = `Chat_${nombreUsuario}_${nombrePersonaje}.json`;
     const fileContent = JSON.stringify(historialChat, null, 2);
 
@@ -19,7 +25,7 @@ async function guardarChatEnDrive(nombreUsuario, nombrePersonaje, historialChat)
     const response = await drive.files.create({
       requestBody: {
         name: fileName,
-        parents: folderId ? [folderId] : [],
+        parents: [folderId],
         mimeType: 'application/json',
       },
       media: {
@@ -28,10 +34,10 @@ async function guardarChatEnDrive(nombreUsuario, nombrePersonaje, historialChat)
       },
     });
 
-    console.log('Chat guardado exitosamente en Drive ID:', response.data.id);
+    console.log('Chat guardado en Drive ID:', response.data.id);
     return response.data;
   } catch (error) {
-    console.error('Error al guardar en Google Drive:', error);
+    console.error('Error al guardar en Google Drive (no crítico):', error.message);
   }
 }
 
