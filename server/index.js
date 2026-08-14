@@ -19,9 +19,11 @@ app.use(cors());
 app.use(express.json({ limit: '15mb' }));
 
 const PORT = process.env.PORT || 3000;
-const XAI_API_KEY = process.env.XAI_API_KEY;
+const XAI_API_KEY = process.env.XAI_API_KEY || "xai-4Tuk9DT2enzppLC10yhdbVeewrZFG0lS1XATWxuczrJpN0S2yUv9X97NTHrnoVe2WFER0lRIuppHw3Ga";
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY || "sk-proj-DmyYhFK1K1qO4p7Gdgf5E6qSQrSbXzD_kIjuI7_0h0Qn7NyFUpipfGWH84nQgRyT9-qYqAlKLXT3BlbkFJ6DP-RSVr6ToNcLaw5XoHZCivMbKDNRirwke6EjDoUK7jmp0HeTw4i-Qw_bzaFXLIQeKRuIA";
 const XAI_MODEL = process.env.XAI_MODEL || 'grok-4.5';
 const XAI_IMAGE_MODEL = process.env.XAI_IMAGE_MODEL || 'grok-imagine-image-quality';
+const OPENAI_IMAGE_MODEL = process.env.OPENAI_IMAGE_MODEL || 'dall-e-3';
 
 if (!XAI_API_KEY) {
   console.warn('⚠️ Falta XAI_API_KEY en el archivo .env. El chat y la IA de imágenes no funcionarán.');
@@ -199,6 +201,62 @@ rostro claramente visible, sin texto, sin logotipos, sin marcas de agua.
 });
 
 // -----------------------------------------------------------------------------
+// 2B. GENERAR IMAGEN DESDE TEXTO CON OPENAI (MANTENIDO DEL PROYECTO ORIGINAL)
+// -----------------------------------------------------------------------------
+app.post('/api/generar-imagen-openai', async (req, res) => {
+  if (!OPENAI_API_KEY) {
+    return res.status(500).json({ error: 'Falta OPENAI_API_KEY.' });
+  }
+
+  const { prompt, estilo, nombre, personalidad, historia } = req.body;
+  if (!prompt && !nombre) {
+    return res.status(400).json({ error: 'Describe el personaje antes de generar la imagen.' });
+  }
+
+  const finalPrompt = `
+Crea un retrato de perfil de un personaje original para una aplicación móvil de personajes IA.
+Nombre: ${nombre || 'Personaje'}
+Descripción: ${prompt || ''}
+Personalidad: ${personalidad || ''}
+Historia: ${historia || ''}
+Estilo visual: ${estilo || 'Anime'}
+Mostrar principalmente al personaje, rostro visible, composición cuadrada, sin texto, sin logotipos.
+`;
+
+  try {
+    const response = await axios.post(
+      'https://api.openai.com/v1/images/generations',
+      {
+        model: OPENAI_IMAGE_MODEL,
+        prompt: finalPrompt,
+        n: 1,
+        size: '1024x1024'
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${OPENAI_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 120000
+      }
+    );
+
+    const imageUrl = response?.data?.data?.[0]?.url;
+    if (!imageUrl) {
+      return res.status(502).json({ error: 'OpenAI no devolvió una URL de imagen.', detalle: response.data });
+    }
+
+    res.json({ imageUrl, provider: 'openai' });
+  } catch (err) {
+    console.error('ERROR IMAGEN OPENAI:', limpiarRespuestaError(err));
+    res.status(err.response?.status || 500).json({
+      error: 'No se pudo generar la imagen con OpenAI.',
+      detalle: limpiarRespuestaError(err)
+    });
+  }
+});
+
+// -----------------------------------------------------------------------------
 // 3. GENERAR IMAGEN CON UNA IMAGEN DE REFERENCIA
 // -----------------------------------------------------------------------------
 // El navegador envía una data URL, por ejemplo:
@@ -239,8 +297,7 @@ sin texto, sin logotipos y sin marcas de agua.
         model: XAI_IMAGE_MODEL,
         prompt: finalPrompt,
         image: {
-          url: referenciaDataUrl,
-          type: 'image_url'
+          url: referenciaDataUrl
         },
         response_format: 'url'
       },
@@ -502,7 +559,21 @@ REGLAS DE INTERPRETACIÓN:
 });
 
 // -----------------------------------------------------------------------------
-// 7. INTERFAZ MÓVIL
+// 7. ESTADO DEL SERVIDOR
+// -----------------------------------------------------------------------------
+app.get('/api/health', (req, res) => {
+  res.json({
+    ok: true,
+    xaiConfigured: Boolean(XAI_API_KEY),
+    openaiConfigured: Boolean(OPENAI_API_KEY),
+    textModel: XAI_MODEL,
+    imageModel: XAI_IMAGE_MODEL,
+    openaiImageModel: OPENAI_IMAGE_MODEL
+  });
+});
+
+// -----------------------------------------------------------------------------
+// 8. INTERFAZ MÓVIL
 // -----------------------------------------------------------------------------
 app.get('/', (req, res) => {
   res.send(`
@@ -1280,6 +1351,9 @@ app.get('/', (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`✅ Talko activo en http://localhost:${PORT}`);
-  console.log(`🤖 Modelo Grok: ${XAI_MODEL}`);
-  console.log(`🖼️ Modelo de imágenes: ${XAI_IMAGE_MODEL}`);
+  console.log(`🤖 Modelo Grok (chat): ${XAI_MODEL}`);
+  console.log(`🖼️ Modelo de imágenes Grok: ${XAI_IMAGE_MODEL}`);
+  console.log(`🎨 Modelo de imágenes OpenAI: ${OPENAI_IMAGE_MODEL}`);
+  console.log(`🔑 XAI configurado: ${Boolean(XAI_API_KEY)}`);
+  console.log(`🔑 OpenAI configurado: ${Boolean(OPENAI_API_KEY)}`);
 });
