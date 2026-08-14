@@ -1341,7 +1341,61 @@ app.get('/', (req, res) => {
     }
   }
 
-  // =========================\n  // EVENTOS GLOBALES: NO DEPENDER DE onclick INLINE\n  // =========================\n  document.addEventListener('click', function (event) {\n    const el = event.target.closest('[data-action]');\n    if (!el) return;\n    const action = el.dataset.action;\n\n    try {\n      if (action === 'lobby' || action === 'personajes' || action === 'chats' || action === 'crear') {\n        event.preventDefault();\n        mostrar(action);\n        return;\n      }\n      if (action === 'abrirModalIA') { event.preventDefault(); abrirModalIA(); return; }\n      if (action === 'cerrarModalIA') { event.preventDefault(); cerrarModalIA(); return; }\n      if (action === 'generarHistoria') { event.preventDefault(); generarHistoria(); return; }\n      if (action === 'guardarPersonaje') { event.preventDefault(); guardarPersonaje(); return; }\n      if (action === 'enviarMensaje') { event.preventDefault(); enviarMensaje(); return; }\n      if (action === 'regenerar') { event.preventDefault(); procesarChatAPI('', 'regenerar'); return; }\n      if (action === 'continuar') { event.preventDefault(); procesarChatAPI('', 'continuar'); return; }\n      if (action === 'galeria') { event.preventDefault(); $('galeria-input').click(); return; }\n      if (action === 'referencia') { event.preventDefault(); $('referencia-input').click(); return; }\n      if (action === 'genero') { event.preventDefault(); seleccionarGenero(el); return; }\n    } catch (err) {\n      console.error('Error en botón:', action, err);\n      toast('No se pudo ejecutar este botón. Revisa la consola.');\n    }\n  });\n\n  // También dejamos Enter operativo aunque el botón esté cubierto.\n  document.addEventListener('keydown', function (event) {\n    if (event.key === 'Enter' && event.target === $('chat-input')) {\n      event.preventDefault();\n      enviarMensaje();\n    }\n    if (event.key === 'Escape' && $('modal-backdrop').classList.contains('open')) {\n      cerrarModalIA();\n    }\n  });\n\n  window.addEventListener('error', function (event) {\n    console.error('Error JavaScript:', event.error || event.message);\n  });\n\n  window.addEventListener('unhandledrejection', function (event) {\n    console.error('Promise rechazada:', event.reason);\n  });\n\n  // Abrir lobby al cargar.\n  if (document.readyState === 'loading') {\n    document.addEventListener('DOMContentLoaded', () => mostrar('lobby'), { once: true });\n  } else {\n    mostrar('lobby');\n  }
+  // =========================
+  // EVENTOS GLOBALES: NO DEPENDER DE onclick INLINE
+  // =========================
+  document.addEventListener('click', function (event) {
+    const el = event.target.closest('[data-action]');
+    if (!el) return;
+    const action = el.dataset.action;
+
+    try {
+      if (action === 'lobby' || action === 'personajes' || action === 'chats' || action === 'crear') {
+        event.preventDefault();
+        mostrar(action);
+        return;
+      }
+      if (action === 'abrirModalIA') { event.preventDefault(); abrirModalIA(); return; }
+      if (action === 'cerrarModalIA') { event.preventDefault(); cerrarModalIA(); return; }
+      if (action === 'generarHistoria') { event.preventDefault(); generarHistoria(); return; }
+      if (action === 'guardarPersonaje') { event.preventDefault(); guardarPersonaje(); return; }
+      if (action === 'enviarMensaje') { event.preventDefault(); enviarMensaje(); return; }
+      if (action === 'regenerar') { event.preventDefault(); procesarChatAPI('', 'regenerar'); return; }
+      if (action === 'continuar') { event.preventDefault(); procesarChatAPI('', 'continuar'); return; }
+      if (action === 'galeria') { event.preventDefault(); $('galeria-input').click(); return; }
+      if (action === 'referencia') { event.preventDefault(); $('referencia-input').click(); return; }
+      if (action === 'genero') { event.preventDefault(); seleccionarGenero(el); return; }
+    } catch (err) {
+      console.error('Error en botón:', action, err);
+      toast('No se pudo ejecutar este botón. Revisa la consola.');
+    }
+  });
+
+  // También dejamos Enter operativo aunque el botón esté cubierto.
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Enter' && event.target === $('chat-input')) {
+      event.preventDefault();
+      enviarMensaje();
+    }
+    if (event.key === 'Escape' && $('modal-backdrop').classList.contains('open')) {
+      cerrarModalIA();
+    }
+  });
+
+  window.addEventListener('error', function (event) {
+    console.error('Error JavaScript:', event.error || event.message);
+  });
+
+  window.addEventListener('unhandledrejection', function (event) {
+    console.error('Promise rechazada:', event.reason);
+  });
+
+  // Abrir lobby al cargar.
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => mostrar('lobby'), { once: true });
+  } else {
+    mostrar('lobby');
+  }
 </script>
 </body>
 </html>
