@@ -1,0 +1,10 @@
+{
+  "name": "talkie-clone",
+  "version": "1.0.0",
+  "description": "App de Chatbot tipo Talkie con IA de Grok, OpenAI y respaldo en Drive",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js"
+  },
+  "dependencies": {}
+}
