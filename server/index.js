@@ -32,9 +32,6 @@ if (!XAI_API_KEY) {
 // -----------------------------------------------------------------------------
 // DATOS TEMPORALES
 // -----------------------------------------------------------------------------
-// Esto mantiene tu proyecto sencillo sin cuentas ni base de datos todavía.
-// Cuando quieras pasar a Supabase/PostgreSQL, estas dos estructuras se pueden
-// sustituir por tablas sin cambiar las rutas del frontend.
 let personajes = [
   {
     id: '1',
@@ -49,7 +46,6 @@ let personajes = [
   }
 ];
 
-// { chatId: [{role, content}] }
 let chatsHistorial = {};
 
 function getChatId(usuarioId, personajeId) {
@@ -201,7 +197,7 @@ rostro claramente visible, sin texto, sin logotipos, sin marcas de agua.
 });
 
 // -----------------------------------------------------------------------------
-// 2B. GENERAR IMAGEN DESDE TEXTO CON OPENAI (MANTENIDO DEL PROYECTO ORIGINAL)
+// 2B. GENERAR IMAGEN DESDE TEXTO CON OPENAI
 // -----------------------------------------------------------------------------
 app.post('/api/generar-imagen-openai', async (req, res) => {
   if (!OPENAI_API_KEY) {
@@ -259,9 +255,6 @@ Mostrar principalmente al personaje, rostro visible, composición cuadrada, sin 
 // -----------------------------------------------------------------------------
 // 3. GENERAR IMAGEN CON UNA IMAGEN DE REFERENCIA
 // -----------------------------------------------------------------------------
-// El navegador envía una data URL, por ejemplo:
-// data:image/jpeg;base64,/9j/4AAQ...
-// xAI admite imágenes como URL o data URI en sus endpoints de edición.
 app.post('/api/generar-imagen-referencia', async (req, res) => {
   if (!requireXAI(res)) return;
 
@@ -417,7 +410,7 @@ app.delete('/api/chats/:usuarioId/:personajeId', (req, res) => {
 });
 
 // -----------------------------------------------------------------------------
-// 6. CHAT GROK — ESTA ES LA PARTE CORREGIDA
+// 6. CHAT GROK
 // -----------------------------------------------------------------------------
 app.post('/api/chat', async (req, res) => {
   if (!requireXAI(res)) return;
@@ -441,14 +434,12 @@ app.post('/api/chat', async (req, res) => {
   const chatId = getChatId(usuarioId, personajeId);
   if (!chatsHistorial[chatId]) chatsHistorial[chatId] = [];
 
-  // Regenerar: quitamos la última respuesta del asistente y volvemos a generar.
   if (action === 'regenerar') {
     if (chatsHistorial[chatId].at(-1)?.role === 'assistant') {
       chatsHistorial[chatId].pop();
     }
   }
 
-  // Continuar: pedimos a Grok que continúe la escena sin que el usuario escriba nada.
   if (action === 'continuar') {
     chatsHistorial[chatId].push({
       role: 'user',
@@ -456,7 +447,6 @@ app.post('/api/chat', async (req, res) => {
     });
   }
 
-  // Chat normal.
   if (action === 'chat') {
     if (!String(mensaje).trim()) {
       return res.status(400).json({ error: 'Escribe un mensaje.' });
@@ -490,7 +480,6 @@ REGLAS DE INTERPRETACIÓN:
 7. No escribas por el usuario ni decidas sus acciones.
 `;
 
-  // Evitamos que el historial crezca indefinidamente.
   const MAX_HISTORY = 40;
   const historialRecortado = chatsHistorial[chatId].slice(-MAX_HISTORY);
 
@@ -528,13 +517,11 @@ REGLAS DE INTERPRETACIÓN:
 
     chatsHistorial[chatId].push({ role: 'assistant', content: respuestaIA });
 
-    // Guardado opcional en Drive.
     if (typeof guardarChatEnDrive === 'function') {
       try {
         await guardarChatEnDrive(usuarioId, personajeId, chatsHistorial[chatId]);
       } catch (driveErr) {
         console.warn('No se pudo guardar en Drive:', driveErr.message);
-        // No rompemos el chat por un error de Drive.
       }
     }
 
@@ -573,7 +560,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // -----------------------------------------------------------------------------
-// 8. INTERFAZ MÓVIL
+// 8. INTERFAZ MÓVIL (CORREGIDA)
 // -----------------------------------------------------------------------------
 app.get('/', (req, res) => {
   res.send(`
@@ -650,7 +637,7 @@ app.get('/', (req, res) => {
   .count { color: var(--muted); font-size: 12px; }
   .mini-item {
     display: flex; align-items:center; gap: 10px; padding: 10px 0;
-    border-bottom: 1px solid #222227;
+    border-bottom: 1px solid #222227; cursor: pointer;
   }
   .mini-item:last-child { border-bottom: 0; }
   .avatar { width: 52px; height:52px; border-radius:50%; object-fit:cover; background:#222; flex:0 0 auto; }
@@ -681,7 +668,7 @@ app.get('/', (req, res) => {
     font-size:34px; line-height:1; box-shadow:0 8px 24px rgba(229,181,83,.3);
   }
   .list { display:flex; flex-direction:column; gap:10px; }
-  .row-card { display:flex; align-items:center; gap:12px; padding:12px; background:var(--panel); border:1px solid var(--border); border-radius:18px; }
+  .row-card { display:flex; align-items:center; gap:12px; padding:12px; background:var(--panel); border:1px solid var(--border); border-radius:18px; cursor: pointer; }
   .row-card .grow { min-width:0; flex:1; }
   .row-card strong { display:block; font-size:16px; }
   .row-card p { color:var(--muted); font-size:13px; margin-top:5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -703,7 +690,7 @@ app.get('/', (req, res) => {
   .gender-btn { border:1px solid #36363d; background:#18181c; color:#ddd; padding:12px 8px; border-radius:13px; }
   .gender-btn.active { border-color:var(--gold); color:var(--gold2); background:#231f16; }
   .photo-options { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-  .photo-option { border:1px solid #36363d; background:#19191d; border-radius:18px; padding:16px 10px; text-align:center; }
+  .photo-option { border:1px solid #36363d; background:#19191d; border-radius:18px; padding:16px 10px; text-align:center; cursor: pointer; }
   .photo-option strong { display:block; margin-top:8px; }
   .photo-option span { display:block; color:var(--muted); font-size:11px; margin-top:5px; }
   .photo-preview { width:108px; height:108px; border-radius:50%; object-fit:cover; display:block; margin:10px auto; border:3px solid #25252b; }
@@ -760,7 +747,7 @@ app.get('/', (req, res) => {
         <h1>Lobby</h1>
         <div class="muted">Tus personajes y chats recientes</div>
       </div>
-      <button class="search-btn" data-action="chats" aria-label="Buscar">⌕</button>
+      <button class="search-btn" onclick="mostrar('chats')" aria-label="Buscar">⌕</button>
     </div>
     <div class="content">
       <div class="hero">
@@ -775,7 +762,7 @@ app.get('/', (req, res) => {
             <span class="count" id="count-personajes">0</span>
           </div>
           <div id="lista-personajes-mini"></div>
-          <button class="see-all" data-action="personajes">Ver todos</button>
+          <button class="see-all" onclick="mostrar('personajes')">Ver todos</button>
         </div>
 
         <div class="section-card">
@@ -784,7 +771,7 @@ app.get('/', (req, res) => {
             <span class="count" id="count-chats">0</span>
           </div>
           <div id="lista-chats-mini"></div>
-          <button class="see-all" data-action="chats">Ver todos</button>
+          <button class="see-all" onclick="mostrar('chats')">Ver todos</button>
         </div>
       </div>
     </div>
@@ -797,7 +784,7 @@ app.get('/', (req, res) => {
         <h1>Personajes</h1>
         <div class="muted">Tus personajes creados</div>
       </div>
-      <button class="icon-btn" data-action="crear">＋</button>
+      <button class="icon-btn" onclick="mostrar('crear')">＋</button>
     </div>
     <div class="content">
       <div id="lista-personajes"></div>
@@ -821,7 +808,7 @@ app.get('/', (req, res) => {
   <section id="screen-crear" class="screen hidden">
     <div class="content">
       <div class="page-head">
-        <button class="back" data-action="lobby">‹</button>
+        <button class="back" onclick="mostrar('lobby')">‹</button>
         <div>
           <h2>Crear personaje</h2>
           <div class="muted">Configura su imagen y personalidad</div>
@@ -832,12 +819,12 @@ app.get('/', (req, res) => {
         <div class="field">
           <label>Foto de perfil</label>
           <div class="photo-options">
-            <button class="photo-option" data-action="galeria">
+            <button class="photo-option" onclick="document.getElementById('galeria-input').click()">
               <div style="font-size:30px">↥</div>
               <strong>Elegir de galería</strong>
               <span>Selecciona una imagen desde tu teléfono.</span>
             </button>
-            <button class="photo-option" data-action="abrirModalIA">
+            <button class="photo-option" onclick="abrirModalIA()">
               <div style="font-size:30px">✦</div>
               <strong>Generar con IA</strong>
               <span>Usa una imagen de referencia y tus datos.</span>
@@ -854,9 +841,9 @@ app.get('/', (req, res) => {
         <div class="field">
           <label>Género</label>
           <div class="gender-row" id="genero-row">
-            <button class="gender-btn" data-genero="Hombre" data-action="genero">Hombre</button>
-            <button class="gender-btn" data-genero="Femenino" data-action="genero">Femenino</button>
-            <button class="gender-btn" data-genero="Otro" data-action="genero">Otro</button>
+            <button class="gender-btn" data-genero="Hombre" onclick="seleccionarGenero(this)">Hombre</button>
+            <button class="gender-btn" data-genero="Femenino" onclick="seleccionarGenero(this)">Femenino</button>
+            <button class="gender-btn" data-genero="Otro" onclick="seleccionarGenero(this)">Otro</button>
           </div>
         </div>
 
@@ -866,8 +853,8 @@ app.get('/', (req, res) => {
         <div class="field"><label>Prólogo / Primer mensaje</label><textarea id="c-saludo" placeholder="Ej: (te observa en silencio) ¿Eres tú?"></textarea></div>
 
         <div class="stack">
-          <button class="secondary" data-action="generarHistoria">✨ Generar historia con Grok</button>
-          <button class="primary" data-action="guardarPersonaje">Crear personaje</button>
+          <button class="secondary" onclick="generarHistoria()">✨ Generar historia con Grok</button>
+          <button class="primary" onclick="guardarPersonaje()">Crear personaje</button>
         </div>
       </div>
     </div>
@@ -876,13 +863,13 @@ app.get('/', (req, res) => {
   <!-- CHAT -->
   <section id="screen-chat" class="chat-screen hidden">
     <div class="chat-header">
-      <button class="back" data-action="lobby">‹</button>
+      <button class="back" onclick="mostrar('lobby')">‹</button>
       <img id="chat-avatar" class="avatar" src="" alt="">
       <div class="grow">
         <strong id="chat-nombre">Personaje</strong>
         <small>Grok está listo para responder</small>
       </div>
-      <button class="icon-btn" data-action="personajes">👤</button>
+      <button class="icon-btn" onclick="mostrar('personajes')">👤</button>
     </div>
     <div id="chat-mensajes" class="chat-messages"></div>
   </section>
@@ -890,23 +877,23 @@ app.get('/', (req, res) => {
   <!-- INPUT CHAT -->
   <div id="chat-input-wrap" class="chat-input-wrap hidden">
     <div class="action-row">
-      <button class="action-btn" data-action="regenerar">↻ Regenerar</button>
-      <button class="action-btn" data-action="continuar">⚡ Continuar</button>
+      <button class="action-btn" onclick="procesarChatAPI('', 'regenerar')">↻ Regenerar</button>
+      <button class="action-btn" onclick="procesarChatAPI('', 'continuar')">⚡ Continuar</button>
       <button class="action-btn" onclick="toast('La voz se puede conectar después a tu proveedor TTS.')">🎙 Voz</button>
     </div>
     <div class="send-row">
       <input id="chat-input" type="text" placeholder="Escribe un mensaje..." onkeydown="if(event.key==='Enter') enviarMensaje()">
-      <button class="send-btn" data-action="enviarMensaje">➤</button>
+      <button class="send-btn" onclick="enviarMensaje()">➤</button>
     </div>
   </div>
 
-  <!-- NAV 3 BOTONES -->
+  <!-- NAV 3 BOTONES CON IDs -->
   <nav id="bottom-nav" class="bottom-nav">
-    <button class="nav-side active" data-action="personajes">
+    <button id="nav-btn-personajes" class="nav-side active" onclick="mostrar('personajes')">
       <span>◉</span><small>Personajes</small>
     </button>
-    <button class="nav-add" data-action="crear">＋</button>
-    <button class="nav-side" data-action="chats">
+    <button class="nav-add" onclick="mostrar('crear')">＋</button>
+    <button id="nav-btn-chats" class="nav-side" onclick="mostrar('chats')">
       <span>◌</span><small>Chats</small>
     </button>
   </nav>
@@ -919,7 +906,7 @@ app.get('/', (req, res) => {
           <h3>Generar foto con IA</h3>
           <div class="muted">Necesitas una imagen de referencia.</div>
         </div>
-        <button class="close" data-action="cerrarModalIA">×</button>
+        <button class="close" onclick="cerrarModalIA()">×</button>
       </div>
 
       <div class="field">
@@ -927,7 +914,7 @@ app.get('/', (req, res) => {
         <div class="ref-drop" id="ref-drop">
           <div>
             <div style="font-size:32px">↥</div>
-            <button class="secondary" style="margin-top:10px" data-action="referencia">Subir imagen</button>
+            <button class="secondary" style="margin-top:10px" onclick="document.getElementById('referencia-input').click()">Subir imagen</button>
             <div class="muted" style="margin-top:8px">PNG, JPG/JPEG o WebP</div>
           </div>
         </div>
@@ -949,7 +936,7 @@ app.get('/', (req, res) => {
 
       <div class="stack">
         <button id="btn-generar-ref" class="primary" onclick="generarImagenConReferencia()">✦ Generar imagen</button>
-        <button class="secondary" data-action="cerrarModalIA">Cancelar</button>
+        <button class="secondary" onclick="cerrarModalIA()">Cancelar</button>
       </div>
     </div>
   </div>
@@ -986,7 +973,7 @@ app.get('/', (req, res) => {
     const safe = escapeHtml(texto);
     return safe
       .replace(/\\(([^)]+)\\)/g, '<span class="text-action">($1)</span>')
-      .replace(/\n/g, '<br>');
+      .replace(/\\n/g, '<br>');
   }
 
   function mostrar(pantalla) {
@@ -999,6 +986,18 @@ app.get('/', (req, res) => {
     if (pantalla === 'chat') {
       $('bottom-nav').classList.add('hidden');
       $('chat-input-wrap').classList.remove('hidden');
+    }
+
+    // Actualiza visualmente qué botón está seleccionado en el Nav inferior
+    const btnPersonajes = $('nav-btn-personajes');
+    const btnChats = $('nav-btn-chats');
+    if (btnPersonajes) btnPersonajes.classList.remove('active');
+    if (btnChats) btnChats.classList.remove('active');
+
+    if (pantalla === 'personajes' || pantalla === 'lobby') {
+      if (btnPersonajes) btnPersonajes.classList.add('active');
+    } else if (pantalla === 'chats') {
+      if (btnChats) btnChats.classList.add('active');
     }
 
     if (pantalla === 'lobby') cargarLobby();
@@ -1028,14 +1027,14 @@ app.get('/', (req, res) => {
       $('count-chats').textContent = chats.length + ' chats';
 
       $('lista-personajes-mini').innerHTML = personajes.slice(0,5).map(p =>
-        '<div class="mini-item" onclick="abrirChat(\'' + escapeHtml(p.id) + '\')">' +
+        '<div class="mini-item" onclick="abrirChat(\\'' + escapeHtml(p.id) + '\\')">' +
           '<img class="avatar" src="' + escapeHtml(p.avatar) + '" alt="">' +
           '<div class="mini-text"><strong>' + escapeHtml(p.nombre) + '</strong><span>' + escapeHtml(p.descripcion) + '</span></div>' +
         '</div>'
       ).join('') || '<div class="empty">Aún no tienes personajes.</div>';
 
       $('lista-chats-mini').innerHTML = chats.slice(0,5).map(c =>
-        '<div class="mini-item" onclick="abrirChat(\'' + escapeHtml(c.personajeId) + '\')">' +
+        '<div class="mini-item" onclick="abrirChat(\\'' + escapeHtml(c.personajeId) + '\\')">' +
           '<img class="avatar" src="' + escapeHtml(c.avatar) + '" alt="">' +
           '<div class="mini-text"><strong>' + escapeHtml(c.nombre) + '</strong><span>' + escapeHtml(c.ultimoMensaje) + '</span></div>' +
           '<span class="chat-time">reciente</span>' +
@@ -1050,7 +1049,8 @@ app.get('/', (req, res) => {
     try {
       const data = await api('/api/personajes');
       $('lista-personajes').innerHTML = data.map(p =>
-        '<div class="row-card" onclick="abrirChat(\'' + escapeHtml(p.id) + '\')">' +
+        // Aquí conectamos toda la tarjeta a la funcionalidad de abrir el chat (mejor UX)
+        '<div class="row-card" onclick="abrirChat(\\'' + escapeHtml(p.id) + '\\')">' +
           '<img class="avatar" src="' + escapeHtml(p.avatar) + '" alt="">' +
           '<div class="grow"><strong>' + escapeHtml(p.nombre) + '</strong><p>' + escapeHtml(p.descripcion) + '</p></div>' +
           '<span class="pill">Chat</span>' +
@@ -1065,10 +1065,11 @@ app.get('/', (req, res) => {
     try {
       const data = await api('/api/chats/' + USUARIO_LOCAL);
       $('lista-chats').innerHTML = data.map(c =>
-        '<div class="row-card">' +
+        // Lo mismo: la fila entera abre el chat
+        '<div class="row-card" onclick="abrirChat(\\'' + escapeHtml(c.personajeId) + '\\')">' +
           '<img class="avatar" src="' + escapeHtml(c.avatar) + '" alt="">' +
-          '<div class="grow" onclick="abrirChat(\'' + escapeHtml(c.personajeId) + '\')"><strong>' + escapeHtml(c.nombre) + '</strong><p>' + escapeHtml(c.ultimoMensaje) + '</p></div>' +
-          '<button class="icon-btn" onclick="event.stopPropagation(); borrarChat(\'' + escapeHtml(c.personajeId) + '\')">🗑</button>' +
+          '<div class="grow"><strong>' + escapeHtml(c.nombre) + '</strong><p>' + escapeHtml(c.ultimoMensaje) + '</p></div>' +
+          '<button class="icon-btn" onclick="event.stopPropagation(); borrarChat(\\'' + escapeHtml(c.personajeId) + '\\')">🗑</button>' +
         '</div>'
       ).join('') || '<div class="empty">Aquí aparecerán tus conversaciones recientes.</div>';
     } catch (err) {
@@ -1168,7 +1169,7 @@ app.get('/', (req, res) => {
     const descripcion = $('c-desc').value.trim();
     if (!nombre || !descripcion) return toast('Pon nombre y descripción primero.');
 
-    const btn = document.querySelector('.secondary[data-action="generarHistoria"]');
+    const btn = document.querySelector('.secondary[onclick="generarHistoria()"]');
     const original = btn.innerHTML;
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner"></span> Generando con Grok...';
@@ -1230,7 +1231,10 @@ app.get('/', (req, res) => {
     referenciaDataUrl = null;
     $('foto-preview').classList.add('hidden');
     $('foto-info').textContent = '';
-    $('ref-drop').innerHTML = '<div><div style="font-size:32px">↥</div><button class="secondary" style="margin-top:10px" data-action="referencia">Subir imagen</button><div class="muted" style="margin-top:8px">PNG, JPG/JPEG o WebP</div></div>';
+    
+    // Aquí estaba el error crítico: una comilla simple sin escapar que rompía todo el JS.
+    $('ref-drop').innerHTML = '<div><div style="font-size:32px">↥</div><button class="secondary" style="margin-top:10px" onclick="document.getElementById(&quot;referencia-input&quot;).click()">Subir imagen</button><div class="muted" style="margin-top:8px">PNG, JPG/JPEG o WebP</div></div>';
+    
     document.querySelectorAll('.gender-btn').forEach(b => b.classList.remove('active'));
     generoSeleccionado = 'Otro';
   }
@@ -1341,61 +1345,8 @@ app.get('/', (req, res) => {
     }
   }
 
-  // =========================
-  // EVENTOS GLOBALES: NO DEPENDER DE onclick INLINE
-  // =========================
-  document.addEventListener('click', function (event) {
-    const el = event.target.closest('[data-action]');
-    if (!el) return;
-    const action = el.dataset.action;
-
-    try {
-      if (action === 'lobby' || action === 'personajes' || action === 'chats' || action === 'crear') {
-        event.preventDefault();
-        mostrar(action);
-        return;
-      }
-      if (action === 'abrirModalIA') { event.preventDefault(); abrirModalIA(); return; }
-      if (action === 'cerrarModalIA') { event.preventDefault(); cerrarModalIA(); return; }
-      if (action === 'generarHistoria') { event.preventDefault(); generarHistoria(); return; }
-      if (action === 'guardarPersonaje') { event.preventDefault(); guardarPersonaje(); return; }
-      if (action === 'enviarMensaje') { event.preventDefault(); enviarMensaje(); return; }
-      if (action === 'regenerar') { event.preventDefault(); procesarChatAPI('', 'regenerar'); return; }
-      if (action === 'continuar') { event.preventDefault(); procesarChatAPI('', 'continuar'); return; }
-      if (action === 'galeria') { event.preventDefault(); $('galeria-input').click(); return; }
-      if (action === 'referencia') { event.preventDefault(); $('referencia-input').click(); return; }
-      if (action === 'genero') { event.preventDefault(); seleccionarGenero(el); return; }
-    } catch (err) {
-      console.error('Error en botón:', action, err);
-      toast('No se pudo ejecutar este botón. Revisa la consola.');
-    }
-  });
-
-  // También dejamos Enter operativo aunque el botón esté cubierto.
-  document.addEventListener('keydown', function (event) {
-    if (event.key === 'Enter' && event.target === $('chat-input')) {
-      event.preventDefault();
-      enviarMensaje();
-    }
-    if (event.key === 'Escape' && $('modal-backdrop').classList.contains('open')) {
-      cerrarModalIA();
-    }
-  });
-
-  window.addEventListener('error', function (event) {
-    console.error('Error JavaScript:', event.error || event.message);
-  });
-
-  window.addEventListener('unhandledrejection', function (event) {
-    console.error('Promise rechazada:', event.reason);
-  });
-
   // Abrir lobby al cargar.
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => mostrar('lobby'), { once: true });
-  } else {
-    mostrar('lobby');
-  }
+  mostrar('lobby');
 </script>
 </body>
 </html>
