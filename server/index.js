@@ -760,7 +760,7 @@ app.get('/', (req, res) => {
         <h1>Lobby</h1>
         <div class="muted">Tus personajes y chats recientes</div>
       </div>
-      <button class="search-btn" onclick="mostrar('chats')" aria-label="Buscar">⌕</button>
+      <button class="search-btn" data-action="chats" aria-label="Buscar">⌕</button>
     </div>
     <div class="content">
       <div class="hero">
@@ -775,7 +775,7 @@ app.get('/', (req, res) => {
             <span class="count" id="count-personajes">0</span>
           </div>
           <div id="lista-personajes-mini"></div>
-          <button class="see-all" onclick="mostrar('personajes')">Ver todos</button>
+          <button class="see-all" data-action="personajes">Ver todos</button>
         </div>
 
         <div class="section-card">
@@ -784,7 +784,7 @@ app.get('/', (req, res) => {
             <span class="count" id="count-chats">0</span>
           </div>
           <div id="lista-chats-mini"></div>
-          <button class="see-all" onclick="mostrar('chats')">Ver todos</button>
+          <button class="see-all" data-action="chats">Ver todos</button>
         </div>
       </div>
     </div>
@@ -797,7 +797,7 @@ app.get('/', (req, res) => {
         <h1>Personajes</h1>
         <div class="muted">Tus personajes creados</div>
       </div>
-      <button class="icon-btn" onclick="mostrar('crear')">＋</button>
+      <button class="icon-btn" data-action="crear">＋</button>
     </div>
     <div class="content">
       <div id="lista-personajes"></div>
@@ -821,7 +821,7 @@ app.get('/', (req, res) => {
   <section id="screen-crear" class="screen hidden">
     <div class="content">
       <div class="page-head">
-        <button class="back" onclick="mostrar('lobby')">‹</button>
+        <button class="back" data-action="lobby">‹</button>
         <div>
           <h2>Crear personaje</h2>
           <div class="muted">Configura su imagen y personalidad</div>
@@ -832,12 +832,12 @@ app.get('/', (req, res) => {
         <div class="field">
           <label>Foto de perfil</label>
           <div class="photo-options">
-            <button class="photo-option" onclick="document.getElementById('galeria-input').click()">
+            <button class="photo-option" data-action="galeria">
               <div style="font-size:30px">↥</div>
               <strong>Elegir de galería</strong>
               <span>Selecciona una imagen desde tu teléfono.</span>
             </button>
-            <button class="photo-option" onclick="abrirModalIA()">
+            <button class="photo-option" data-action="abrirModalIA">
               <div style="font-size:30px">✦</div>
               <strong>Generar con IA</strong>
               <span>Usa una imagen de referencia y tus datos.</span>
@@ -854,9 +854,9 @@ app.get('/', (req, res) => {
         <div class="field">
           <label>Género</label>
           <div class="gender-row" id="genero-row">
-            <button class="gender-btn" data-genero="Hombre" onclick="seleccionarGenero(this)">Hombre</button>
-            <button class="gender-btn" data-genero="Femenino" onclick="seleccionarGenero(this)">Femenino</button>
-            <button class="gender-btn" data-genero="Otro" onclick="seleccionarGenero(this)">Otro</button>
+            <button class="gender-btn" data-genero="Hombre" data-action="genero">Hombre</button>
+            <button class="gender-btn" data-genero="Femenino" data-action="genero">Femenino</button>
+            <button class="gender-btn" data-genero="Otro" data-action="genero">Otro</button>
           </div>
         </div>
 
@@ -866,8 +866,8 @@ app.get('/', (req, res) => {
         <div class="field"><label>Prólogo / Primer mensaje</label><textarea id="c-saludo" placeholder="Ej: (te observa en silencio) ¿Eres tú?"></textarea></div>
 
         <div class="stack">
-          <button class="secondary" onclick="generarHistoria()">✨ Generar historia con Grok</button>
-          <button class="primary" onclick="guardarPersonaje()">Crear personaje</button>
+          <button class="secondary" data-action="generarHistoria">✨ Generar historia con Grok</button>
+          <button class="primary" data-action="guardarPersonaje">Crear personaje</button>
         </div>
       </div>
     </div>
@@ -876,13 +876,13 @@ app.get('/', (req, res) => {
   <!-- CHAT -->
   <section id="screen-chat" class="chat-screen hidden">
     <div class="chat-header">
-      <button class="back" onclick="mostrar('lobby')">‹</button>
+      <button class="back" data-action="lobby">‹</button>
       <img id="chat-avatar" class="avatar" src="" alt="">
       <div class="grow">
         <strong id="chat-nombre">Personaje</strong>
         <small>Grok está listo para responder</small>
       </div>
-      <button class="icon-btn" onclick="mostrar('personajes')">👤</button>
+      <button class="icon-btn" data-action="personajes">👤</button>
     </div>
     <div id="chat-mensajes" class="chat-messages"></div>
   </section>
@@ -890,23 +890,23 @@ app.get('/', (req, res) => {
   <!-- INPUT CHAT -->
   <div id="chat-input-wrap" class="chat-input-wrap hidden">
     <div class="action-row">
-      <button class="action-btn" onclick="procesarChatAPI('', 'regenerar')">↻ Regenerar</button>
-      <button class="action-btn" onclick="procesarChatAPI('', 'continuar')">⚡ Continuar</button>
+      <button class="action-btn" data-action="regenerar">↻ Regenerar</button>
+      <button class="action-btn" data-action="continuar">⚡ Continuar</button>
       <button class="action-btn" onclick="toast('La voz se puede conectar después a tu proveedor TTS.')">🎙 Voz</button>
     </div>
     <div class="send-row">
       <input id="chat-input" type="text" placeholder="Escribe un mensaje..." onkeydown="if(event.key==='Enter') enviarMensaje()">
-      <button class="send-btn" onclick="enviarMensaje()">➤</button>
+      <button class="send-btn" data-action="enviarMensaje">➤</button>
     </div>
   </div>
 
   <!-- NAV 3 BOTONES -->
   <nav id="bottom-nav" class="bottom-nav">
-    <button class="nav-side active" onclick="mostrar('personajes')">
+    <button class="nav-side active" data-action="personajes">
       <span>◉</span><small>Personajes</small>
     </button>
-    <button class="nav-add" onclick="mostrar('crear')">＋</button>
-    <button class="nav-side" onclick="mostrar('chats')">
+    <button class="nav-add" data-action="crear">＋</button>
+    <button class="nav-side" data-action="chats">
       <span>◌</span><small>Chats</small>
     </button>
   </nav>
@@ -919,7 +919,7 @@ app.get('/', (req, res) => {
           <h3>Generar foto con IA</h3>
           <div class="muted">Necesitas una imagen de referencia.</div>
         </div>
-        <button class="close" onclick="cerrarModalIA()">×</button>
+        <button class="close" data-action="cerrarModalIA">×</button>
       </div>
 
       <div class="field">
@@ -927,7 +927,7 @@ app.get('/', (req, res) => {
         <div class="ref-drop" id="ref-drop">
           <div>
             <div style="font-size:32px">↥</div>
-            <button class="secondary" style="margin-top:10px" onclick="document.getElementById('referencia-input').click()">Subir imagen</button>
+            <button class="secondary" style="margin-top:10px" data-action="referencia">Subir imagen</button>
             <div class="muted" style="margin-top:8px">PNG, JPG/JPEG o WebP</div>
           </div>
         </div>
@@ -949,7 +949,7 @@ app.get('/', (req, res) => {
 
       <div class="stack">
         <button id="btn-generar-ref" class="primary" onclick="generarImagenConReferencia()">✦ Generar imagen</button>
-        <button class="secondary" onclick="cerrarModalIA()">Cancelar</button>
+        <button class="secondary" data-action="cerrarModalIA">Cancelar</button>
       </div>
     </div>
   </div>
@@ -1168,7 +1168,7 @@ app.get('/', (req, res) => {
     const descripcion = $('c-desc').value.trim();
     if (!nombre || !descripcion) return toast('Pon nombre y descripción primero.');
 
-    const btn = document.querySelector('.secondary[onclick="generarHistoria()"]');
+    const btn = document.querySelector('.secondary[data-action="generarHistoria"]');
     const original = btn.innerHTML;
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner"></span> Generando con Grok...';
@@ -1230,7 +1230,7 @@ app.get('/', (req, res) => {
     referenciaDataUrl = null;
     $('foto-preview').classList.add('hidden');
     $('foto-info').textContent = '';
-    $('ref-drop').innerHTML = '<div><div style="font-size:32px">↥</div><button class="secondary" style="margin-top:10px" onclick="document.getElementById('referencia-input').click()">Subir imagen</button><div class="muted" style="margin-top:8px">PNG, JPG/JPEG o WebP</div></div>';
+    $('ref-drop').innerHTML = '<div><div style="font-size:32px">↥</div><button class="secondary" style="margin-top:10px" data-action="referencia">Subir imagen</button><div class="muted" style="margin-top:8px">PNG, JPG/JPEG o WebP</div></div>';
     document.querySelectorAll('.gender-btn').forEach(b => b.classList.remove('active'));
     generoSeleccionado = 'Otro';
   }
@@ -1341,8 +1341,7 @@ app.get('/', (req, res) => {
     }
   }
 
-  // Abrir lobby al cargar.
-  mostrar('lobby');
+  // =========================\n  // EVENTOS GLOBALES: NO DEPENDER DE onclick INLINE\n  // =========================\n  document.addEventListener('click', function (event) {\n    const el = event.target.closest('[data-action]');\n    if (!el) return;\n    const action = el.dataset.action;\n\n    try {\n      if (action === 'lobby' || action === 'personajes' || action === 'chats' || action === 'crear') {\n        event.preventDefault();\n        mostrar(action);\n        return;\n      }\n      if (action === 'abrirModalIA') { event.preventDefault(); abrirModalIA(); return; }\n      if (action === 'cerrarModalIA') { event.preventDefault(); cerrarModalIA(); return; }\n      if (action === 'generarHistoria') { event.preventDefault(); generarHistoria(); return; }\n      if (action === 'guardarPersonaje') { event.preventDefault(); guardarPersonaje(); return; }\n      if (action === 'enviarMensaje') { event.preventDefault(); enviarMensaje(); return; }\n      if (action === 'regenerar') { event.preventDefault(); procesarChatAPI('', 'regenerar'); return; }\n      if (action === 'continuar') { event.preventDefault(); procesarChatAPI('', 'continuar'); return; }\n      if (action === 'galeria') { event.preventDefault(); $('galeria-input').click(); return; }\n      if (action === 'referencia') { event.preventDefault(); $('referencia-input').click(); return; }\n      if (action === 'genero') { event.preventDefault(); seleccionarGenero(el); return; }\n    } catch (err) {\n      console.error('Error en botón:', action, err);\n      toast('No se pudo ejecutar este botón. Revisa la consola.');\n    }\n  });\n\n  // También dejamos Enter operativo aunque el botón esté cubierto.\n  document.addEventListener('keydown', function (event) {\n    if (event.key === 'Enter' && event.target === $('chat-input')) {\n      event.preventDefault();\n      enviarMensaje();\n    }\n    if (event.key === 'Escape' && $('modal-backdrop').classList.contains('open')) {\n      cerrarModalIA();\n    }\n  });\n\n  window.addEventListener('error', function (event) {\n    console.error('Error JavaScript:', event.error || event.message);\n  });\n\n  window.addEventListener('unhandledrejection', function (event) {\n    console.error('Promise rechazada:', event.reason);\n  });\n\n  // Abrir lobby al cargar.\n  if (document.readyState === 'loading') {\n    document.addEventListener('DOMContentLoaded', () => mostrar('lobby'), { once: true });\n  } else {\n    mostrar('lobby');\n  }
 </script>
 </body>
 </html>
